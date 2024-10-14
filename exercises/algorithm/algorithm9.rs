@@ -2,7 +2,7 @@
 	heap
 	This question requires you to implement a binary heap function
 */
-// I AM NOT DONE
+
 
 use std::cmp::Ord;
 use std::default::Default;
@@ -23,7 +23,7 @@ where
     pub fn new(comparator: fn(&T, &T) -> bool) -> Self {
         Self {
             count: 0,
-            items: vec![T::default()],
+            items: vec![T::default()], // 第0个位置保留不用，从第1个位置开始
             comparator,
         }
     }
@@ -37,15 +37,13 @@ where
     }
 
     pub fn add(&mut self, value: T) {
-        //TODO
+        self.items.push(value);
+        self.count += 1;
+        self.bubble_up(self.count);
     }
 
     fn parent_idx(&self, idx: usize) -> usize {
         idx / 2
-    }
-
-    fn children_present(&self, idx: usize) -> bool {
-        self.left_child_idx(idx) <= self.count
     }
 
     fn left_child_idx(&self, idx: usize) -> usize {
@@ -53,12 +51,54 @@ where
     }
 
     fn right_child_idx(&self, idx: usize) -> usize {
-        self.left_child_idx(idx) + 1
+        idx * 2 + 1
     }
 
-    fn smallest_child_idx(&self, idx: usize) -> usize {
-        //TODO
-		0
+    fn bubble_up(&mut self, mut idx: usize) {
+        while idx > 1 {
+            let parent_idx = self.parent_idx(idx); // 预先计算父节点的索引
+            if (self.comparator)(&self.items[idx], &self.items[parent_idx]) {
+                self.items.swap(idx, parent_idx);
+                idx = parent_idx;
+            } else {
+                break;
+            }
+        }
+    }
+
+    fn bubble_down(&mut self, mut idx: usize) {
+        while self.left_child_idx(idx) <= self.count {
+            let mut smaller_child_idx = self.left_child_idx(idx);
+            if self.right_child_idx(idx) <= self.count
+                && (self.comparator)(&self.items[self.right_child_idx(idx)], &self.items[smaller_child_idx])
+            {
+                smaller_child_idx = self.right_child_idx(idx);
+            }
+
+            if (self.comparator)(&self.items[idx], &self.items[smaller_child_idx]) {
+                break;
+            }
+
+            self.items.swap(idx, smaller_child_idx);
+            idx = smaller_child_idx;
+        }
+    }
+
+    pub fn pop(&mut self) -> Option<T> {
+        if self.count == 0 {
+            return None;
+        }
+
+        // 把第一个元素和最后一个元素交换
+        self.items.swap(1, self.count);
+        let result = self.items.pop();
+        self.count -= 1;
+
+        if self.count > 0 {
+            self.bubble_down(1);
+        }
+
+        result
     }
 }
 
@@ -84,8 +124,7 @@ where
     type Item = T;
 
     fn next(&mut self) -> Option<T> {
-        //TODO
-		None
+        self.pop()
     }
 }
 
